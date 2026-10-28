@@ -29,3 +29,33 @@ O projeto será construído como um bloco de notas funcional e inteligente, com 
 3. Oferecer uma base técnica preparada para evolução contínua.
 4. Manter uma interface responsiva, clara e agradável.
 
+## Status
+
+A base do projeto foi inicializada com React, Vite, TypeScript, Tailwind CSS e Supabase. As funcionalidades da agenda ainda não foram implementadas.
+
+## Desenvolvimento
+
+Instale as dependências:
+
+```bash
+npm install
+```
+
+Inicie o servidor local:
+
+```bash
+npm run dev
+```
+
+Para configurar o Supabase, copie `.env.example` para `.env.local` e preencha as variáveis do projeto:
+
+```env
+VITE_SUPABASE_URL=
+VITE_SUPABASE_ANON_KEY=
+```
+
+## Próximos passos
+
+- Definir o modelo de dados para notas, eventos e notificações.
+- Construir a interface responsiva para web e dispositivos móveis.
+- Implementar os recursos de clima e relógio integrado.
