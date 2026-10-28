@@ -1,12 +1,51 @@
 import { createClient } from '@supabase/supabase-js'
 
+export type TipoConteudo = 'nota' | 'lista'
+
+export type BancoDeDados = {
+  public: {
+    Tables: {
+      notas: {
+        Row: {
+          id: string
+          titulo: string
+          conteudo: string
+          tipo: TipoConteudo
+          criado_em: string
+          atualizado_em: string
+        }
+        Insert: {
+          id?: string
+          titulo: string
+          conteudo: string
+          tipo?: TipoConteudo
+          criado_em?: string
+          atualizado_em?: string
+        }
+        Update: {
+          id?: string
+          titulo?: string
+          conteudo?: string
+          tipo?: TipoConteudo
+          criado_em?: string
+          atualizado_em?: string
+        }
+        Relationships: []
+      }
+    }
+    Views: Record<string, never>
+    Functions: Record<string, never>
+    Enums: {
+      tipo_conteudo: TipoConteudo
+    }
+    CompositeTypes: Record<string, never>
+  }
+}
+
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
 
-if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error(
-    'Configure VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY para conectar ao Supabase.',
-  )
-}
-
-export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+export const supabase =
+  supabaseUrl && supabaseAnonKey
+    ? createClient<BancoDeDados>(supabaseUrl, supabaseAnonKey)
+    : null
