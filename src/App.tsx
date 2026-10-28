@@ -1,7 +1,9 @@
 import { useEffect, useMemo, useState } from 'react'
 import type { FormEvent } from 'react'
+import { supabase } from './lib/supabase'
+import type { TipoConteudo as TipoConteudoBanco } from './lib/supabase'
 
-type TipoConteudo = 'nota' | 'lista'
+type TipoConteudo = TipoConteudoBanco
 
 type Nota = {
   id: string
@@ -11,42 +13,20 @@ type Nota = {
   type?: TipoConteudo
 }
 
-const CHAVE_NOTAS = 'agenda-inteligente-notes'
-
-function lerNotas(): Nota[] {
-  const notasSalvas = localStorage.getItem(CHAVE_NOTAS)
-
-  if (!notasSalvas) {
-    return []
+function converterNota(nota: {
+  id: string
+  titulo: string
+  conteudo: string
+  tipo: TipoConteudo
+  atualizado_em: string
+}): Nota {
+  return {
+    id: nota.id,
+    title: nota.titulo,
+    content: nota.conteudo,
+    type: nota.tipo,
+    updatedAt: nota.atualizado_em,
   }
-
-  try {
-    const notas = JSON.parse(notasSalvas) as unknown
-
-    if (!Array.isArray(notas)) {
-      throw new Error('O conteúdo armazenado não é uma lista de notas.')
-    }
-
-    return notas.filter(ehNota)
-  } catch (error) {
-    console.error('Não foi possível carregar as notas salvas.', error)
-    return []
-  }
-}
-
-function ehNota(valor: unknown): valor is Nota {
-  if (!valor || typeof valor !== 'object') {
-    return false
-  }
-
-  const nota = valor as Record<string, unknown>
-
-  return (
-    typeof nota.id === 'string' &&
-    typeof nota.title === 'string' &&
-    typeof nota.content === 'string' &&
-    typeof nota.updatedAt === 'string'
-  )
 }
 
 function formatarData(data: string) {
@@ -57,7 +37,7 @@ function formatarData(data: string) {
 }
 
 function App() {
-  const [notas, setNotas] = useState<Nota[]>(lerNotas)
+  const [notas, setNotas] = useState<Nota[]>([])
   const [notaSelecionada, setNotaSelecionada] = useState<string | null>(null)
   const [busca, setBusca] = useState('')
   const [titulo, setTitulo] = useState('')
@@ -66,6 +46,9 @@ function App() {
   const [paginaEditor, setPaginaEditor] = useState(false)
   const [menuCriacao, setMenuCriacao] = useState(false)
   const [menuFerramentas, setMenuFerramentas] = useState(false)
+  const [carregando, setCarregando] = useState(true)
+  const [salvando, setSalvando] = useState(false)
+  const [erro, setErro] = useState<string | null>(null)
 
   const notaAtual = notas.find((nota) => nota.id === notaSelecionada)
   const notasFiltradas = useMemo(() => {
@@ -83,8 +66,31 @@ function App() {
   }, [notas, busca])
 
   useEffect(() => {
-    localStorage.setItem(CHAVE_NOTAS, JSON.stringify(notas))
-  }, [notas])
+    async function carregarNotas() {
+      if (!supabase) {
+        setErro(
+          'Supabase não configurado. Verifique VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY.',
+        )
+        setCarregando(false)
+        return
+      }
+
+      const { data, error } = await supabase
+        .from('notas')
+        .select('id, titulo, conteudo, tipo, atualizado_em')
+        .order('atualizado_em', { ascending: false })
+
+      if (error) {
+        setErro(`Não foi possível carregar as notas: ${error.message}`)
+      } else {
+        setNotas(data.map(converterNota))
+      }
+
+      setCarregando(false)
+    }
+
+    void carregarNotas()
+  }, [])
 
   function voltarParaLista() {
     setNotaSelecionada(null)
@@ -111,7 +117,7 @@ function App() {
     setPaginaEditor(true)
   }
 
-  function salvarConteudo(event: FormEvent<HTMLFormElement>) {
+  async function salvarConteudo(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
 
     const tituloTratado = titulo.trim()
@@ -121,47 +127,83 @@ function App() {
       return
     }
 
-    const atualizadoEm = new Date().toISOString()
-
-    if (notaSelecionada) {
-      setNotas((notasAtuais) =>
-        notasAtuais.map((nota) =>
-          nota.id === notaSelecionada
-            ? {
-                ...nota,
-                title: tituloTratado,
-                content: conteudoTratado,
-                updatedAt: atualizadoEm,
-                type: tipoConteudo,
-              }
-            : nota,
-        ),
+    if (!supabase) {
+      setErro(
+        'Supabase não configurado. Verifique VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY.',
       )
-    } else {
-      setNotas((notasAtuais) => [
-        {
-          id: crypto.randomUUID(),
-          title: tituloTratado,
-          content: conteudoTratado,
-          updatedAt: atualizadoEm,
-          type: tipoConteudo,
-        },
-        ...notasAtuais,
-      ])
-    }
-
-    voltarParaLista()
-  }
-
-  function excluirConteudo() {
-    if (!notaSelecionada) {
       return
     }
 
-    setNotas((notasAtuais) =>
-      notasAtuais.filter((nota) => nota.id !== notaSelecionada),
-    )
-    voltarParaLista()
+    setSalvando(true)
+    setErro(null)
+
+    if (notaSelecionada) {
+      const { data, error } = await supabase
+        .from('notas')
+        .update({
+          titulo: tituloTratado,
+          conteudo: conteudoTratado,
+          tipo: tipoConteudo,
+        })
+        .eq('id', notaSelecionada)
+        .select('id, titulo, conteudo, tipo, atualizado_em')
+        .single()
+
+      if (error) {
+        setErro(`Não foi possível atualizar a nota: ${error.message}`)
+      } else {
+        setNotas((notasAtuais) =>
+          notasAtuais.map((nota) =>
+            nota.id === notaSelecionada ? converterNota(data) : nota,
+          ),
+        )
+        voltarParaLista()
+      }
+    } else {
+      const { data, error } = await supabase
+        .from('notas')
+        .insert({
+          titulo: tituloTratado,
+          conteudo: conteudoTratado,
+          tipo: tipoConteudo,
+        })
+        .select('id, titulo, conteudo, tipo, atualizado_em')
+        .single()
+
+      if (error) {
+        setErro(`Não foi possível criar a nota: ${error.message}`)
+      } else {
+        setNotas((notasAtuais) => [converterNota(data), ...notasAtuais])
+        voltarParaLista()
+      }
+    }
+
+    setSalvando(false)
+  }
+
+  async function excluirConteudo() {
+    if (!notaSelecionada || !supabase) {
+      return
+    }
+
+    setSalvando(true)
+    setErro(null)
+
+    const { error } = await supabase
+      .from('notas')
+      .delete()
+      .eq('id', notaSelecionada)
+
+    if (error) {
+      setErro(`Não foi possível excluir a nota: ${error.message}`)
+    } else {
+      setNotas((notasAtuais) =>
+        notasAtuais.filter((nota) => nota.id !== notaSelecionada),
+      )
+      voltarParaLista()
+    }
+
+    setSalvando(false)
   }
 
   if (paginaEditor) {
@@ -191,6 +233,11 @@ function App() {
         </header>
 
         <div className="mx-auto max-w-4xl px-6 py-10">
+          {erro && (
+            <p className="mb-6 rounded-lg border border-[#744d48] bg-[#382725] px-4 py-3 text-sm text-[#e2a99d]">
+              {erro}
+            </p>
+          )}
           <form onSubmit={salvarConteudo}>
             <input
               value={titulo}
@@ -233,9 +280,10 @@ function App() {
               </button>
               <button
                 type="submit"
+                disabled={salvando}
                 className="rounded-lg bg-[#c8bda9] px-4 py-2 text-sm font-semibold text-[#24231f] transition hover:bg-[#d8cebd]"
               >
-                Salvar
+                {salvando ? 'Salvando...' : 'Salvar'}
               </button>
             </div>
           </form>
@@ -306,9 +354,18 @@ function App() {
             </span>
           </div>
 
+          {erro && (
+            <p className="mb-6 rounded-lg border border-[#744d48] bg-[#382725] px-4 py-3 text-sm text-[#e2a99d]">
+              {erro}
+            </p>
+          )}
           <section className="mt-8">
             <h2 className="sr-only">Lista de notas</h2>
-            {notasFiltradas.length === 0 ? (
+            {carregando ? (
+              <p className="py-16 text-center text-[#9b978e]">
+                Carregando notas...
+              </p>
+            ) : notasFiltradas.length === 0 ? (
               <p className="py-16 text-center text-[#9b978e]">
                 {notas.length === 0
                   ? 'Nenhuma nota ainda'
