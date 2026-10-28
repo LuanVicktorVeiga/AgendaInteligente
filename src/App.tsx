@@ -201,11 +201,7 @@ function App() {
               className="w-full border-0 bg-transparent text-4xl font-semibold tracking-tight text-[#eee9df] outline-none placeholder:text-[#77746d]"
               required
             />
-            <div className="mt-6 flex items-center gap-2 border-y border-[#3b3a36] py-3 text-sm text-[#9b978e]">
-              <span className="text-xs text-[#706d66]">
-                Editor de texto simples
-              </span>
-            </div>
+            
             <textarea
               value={conteudo}
               onChange={(event) => setConteudo(event.target.value)}
