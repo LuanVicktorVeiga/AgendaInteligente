@@ -7,6 +7,8 @@ export function TelaAutenticacao() {
   const [email, setEmail] = useState('')
   const [senha, setSenha] = useState('')
   const [confirmacaoSenha, setConfirmacaoSenha] = useState('')
+  const [mostrarSenha, setMostrarSenha] = useState(false)
+  const [mostrarConfirmacaoSenha, setMostrarConfirmacaoSenha] = useState(false)
   const [carregando, setCarregando] = useState(false)
   const [mensagem, setMensagem] = useState<string | null>(null)
   const [erro, setErro] = useState<string | null>(null)
@@ -79,20 +81,30 @@ export function TelaAutenticacao() {
             <label htmlFor="email" className="mb-2 block text-sm font-medium text-[#d8d2c7]">
               E-mail
             </label>
-            <input id="email" type="email" value={email} onChange={(event) => setEmail(event.target.value)} className="w-full rounded-lg border border-[#4a4842] bg-[#1d1d1b] px-3 py-2.5 text-[#eee9df] outline-none transition placeholder:text-[#77746d] focus:border-[#c8bda9] focus:ring-2 focus:ring-[#c8bda9]/20" placeholder="voce@exemplo.com" required />
+            <input id="email" type="email" value={email} onChange={(event) => setEmail(event.target.value)} className="w-full rounded-lg border border-[#4a4842] bg-[#1d1d1b] px-3 py-2.5 text-[#eee9df] outline-none transition placeholder:text-[#77746d] focus:border-[#c8bda9] focus:ring-2 focus:ring-[#c8bda9]/20" placeholder="Digite um email válido" required />
           </div>
           <div>
             <label htmlFor="senha" className="mb-2 block text-sm font-medium text-[#d8d2c7]">
               Senha
             </label>
-            <input id="senha" type="password" value={senha} onChange={(event) => setSenha(event.target.value)} className="w-full rounded-lg border border-[#4a4842] bg-[#1d1d1b] px-3 py-2.5 text-[#eee9df] outline-none transition placeholder:text-[#77746d] focus:border-[#c8bda9] focus:ring-2 focus:ring-[#c8bda9]/20" placeholder="Mínimo de 6 caracteres" minLength={6} required />
+            <div className="relative">
+              <input id="senha" type={mostrarSenha ? 'text' : 'password'} value={senha} onChange={(event) => setSenha(event.target.value)} className="w-full rounded-lg border border-[#4a4842] bg-[#1d1d1b] px-3 py-2.5 pr-16 text-[#eee9df] outline-none transition placeholder:text-[#77746d] focus:border-[#c8bda9] focus:ring-2 focus:ring-[#c8bda9]/20" placeholder="Mínimo 6 caracteres" minLength={6} required />
+              <button type="button" onClick={() => setMostrarSenha((visivel) => !visivel)} className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-medium text-[#c8bda9] transition hover:text-[#eee9df]" aria-label={mostrarSenha ? 'Ocultar senha' : 'Exibir senha'}>
+                {mostrarSenha ? '+ +' : '- -'}
+              </button>
+            </div>
           </div>
           {modoCadastro && (
             <div>
               <label htmlFor="confirmacao-senha" className="mb-2 block text-sm font-medium text-[#d8d2c7]">
                 Confirmar senha
               </label>
-              <input id="confirmacao-senha" type="password" value={confirmacaoSenha} onChange={(event) => setConfirmacaoSenha(event.target.value)} className="w-full rounded-lg border border-[#4a4842] bg-[#1d1d1b] px-3 py-2.5 text-[#eee9df] outline-none transition placeholder:text-[#77746d] focus:border-[#c8bda9] focus:ring-2 focus:ring-[#c8bda9]/20" placeholder="Repita sua senha" minLength={6} required />
+              <div className="relative">
+                <input id="confirmacao-senha" type={mostrarConfirmacaoSenha ? 'text' : 'password'} value={confirmacaoSenha} onChange={(event) => setConfirmacaoSenha(event.target.value)} className="w-full rounded-lg border border-[#4a4842] bg-[#1d1d1b] px-3 py-2.5 pr-16 text-[#eee9df] outline-none transition placeholder:text-[#77746d] focus:border-[#c8bda9] focus:ring-2 focus:ring-[#c8bda9]/20" placeholder="Repita sua senha" minLength={6} required />
+                <button type="button" onClick={() => setMostrarConfirmacaoSenha((visivel) => !visivel)} className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-medium text-[#c8bda9] transition hover:text-[#eee9df]" aria-label={mostrarConfirmacaoSenha ? 'Ocultar confirmação de senha' : 'Exibir confirmação de senha'}>
+                  {mostrarConfirmacaoSenha ? '+ +' : '- -'}
+                </button>
+              </div>
             </div>
           )}
           {erro && <p className="rounded-lg border border-[#744d48] bg-[#382725] px-4 py-3 text-sm text-[#e2a99d]">{erro}</p>}
