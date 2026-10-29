@@ -10,20 +10,20 @@ type Props = {
   aoAbrirNota: (nota: Nota) => void
   aoAbrirEditor: (tipo: TipoConteudo) => void
   aoAlternarMenu: () => void
-  aoSair: () => void
+  aoAbrirPerfil: () => void
 }
 
 function formatarData(data: string) {
   return new Intl.DateTimeFormat('pt-BR', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(data))
 }
 
-export function TelaNotas({ notas, busca, carregando, erro, menuCriacao, aoMudarBusca, aoAbrirNota, aoAbrirEditor, aoAlternarMenu, aoSair }: Props) {
+export function TelaNotas({ notas, busca, carregando, erro, menuCriacao, aoMudarBusca, aoAbrirNota, aoAbrirEditor, aoAlternarMenu, aoAbrirPerfil }: Props) {
   const termo = busca.trim().toLowerCase()
   const notasFiltradas = termo ? notas.filter((nota) => nota.title.toLowerCase().includes(termo) || nota.content.toLowerCase().includes(termo)) : notas
 
   return (
     <main className="min-h-screen bg-[#1d1d1b] text-[#eee9df]">
-      <header className="border-b border-[#3b3a36] bg-[#171715]"><div className="mx-auto flex max-w-7xl items-center px-6 py-5"><h1 className="text-2xl font-semibold tracking-tight">Agenda Inteligente</h1><button type="button" onClick={aoSair} className="ml-auto rounded-lg border border-[#4a4842] px-3 py-2 text-sm text-[#c8bda9] transition hover:bg-[#302f2b] hover:text-[#eee9df]">Sair</button></div></header>
+      <header className="border-b border-[#3b3a36] bg-[#171715]"><div className="mx-auto flex max-w-7xl items-center px-6 py-5"><h1 className="text-2xl font-semibold tracking-tight">Agenda Inteligente</h1><button type="button" onClick={aoAbrirPerfil} className="ml-auto rounded-lg border border-[#4a4842] px-3 py-2 text-sm text-[#c8bda9] transition hover:bg-[#302f2b] hover:text-[#eee9df]">Perfil</button></div></header>
       <div className="mx-auto max-w-7xl px-6 py-8"><div className="mx-auto max-w-4xl">
         <label htmlFor="busca" className="sr-only">Buscar notas</label>
         <div className="relative"><input id="busca" type="search" value={busca} onChange={(event) => aoMudarBusca(event.target.value)} placeholder="Buscar notas" className="w-full rounded-xl border border-[#4a4842] bg-[#292825] py-3 pl-4 pr-11 text-sm outline-none transition placeholder:text-[#8d8981] focus:border-[#c8bda9] focus:ring-2 focus:ring-[#c8bda9]/20" /><span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-[#c8bda9]">⌕</span></div>

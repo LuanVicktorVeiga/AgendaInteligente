@@ -13,7 +13,6 @@ type Props = {
   aoVoltar: () => void
   aoAlternarFerramentas: () => void
   aoFecharFerramentas: () => void
-  aoSair: () => void
 }
 
 export function TelaEditor({
@@ -29,7 +28,6 @@ export function TelaEditor({
   aoVoltar,
   aoAlternarFerramentas,
   aoFecharFerramentas,
-  aoSair,
 }: Props) {
   return (
     <main className="min-h-screen bg-[#1d1d1b] text-[#eee9df]">
@@ -40,7 +38,6 @@ export function TelaEditor({
             <p className="text-sm font-semibold uppercase tracking-[0.2em] text-[#c8bda9]">Agenda Inteligente</p>
             <h1 className="mt-1 text-xl font-semibold">{notaAtual ? `Editar ${tipoConteudo === 'lista' ? 'lista' : 'nota'}` : `Nova ${tipoConteudo === 'lista' ? 'lista' : 'nota'}`}</h1>
           </div>
-          <button type="button" onClick={aoSair} className="ml-auto rounded-lg border border-[#4a4842] px-3 py-2 text-sm text-[#c8bda9] transition hover:bg-[#302f2b] hover:text-[#eee9df]">Sair</button>
         </div>
       </header>
       <div className="mx-auto max-w-4xl px-6 py-10">
