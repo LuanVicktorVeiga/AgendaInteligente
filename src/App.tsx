@@ -125,7 +125,7 @@ function App() {
     const conteudoTratado = conteudo.trim()
     const versaoAtual = `${tituloTratado}\n${conteudoTratado}\n${tipoConteudo}`
 
-    if (!tituloTratado || !conteudoTratado || versaoAtual === ultimaVersaoSalva.current) {
+    if (!tituloTratado || (!conteudoTratado && !notaSelecionada) || versaoAtual === ultimaVersaoSalva.current) {
       return
     }
 
@@ -166,7 +166,7 @@ function App() {
   }, [conteudo, notaSelecionada, tipoConteudo, titulo])
 
   useEffect(() => {
-    if (!paginaEditor || !titulo.trim() || !conteudo.trim()) {
+    if (!paginaEditor || !titulo.trim() || (!conteudo.trim() && !notaSelecionada)) {
       return
     }
 
@@ -175,7 +175,7 @@ function App() {
     }, 1000)
 
     return () => window.clearTimeout(temporizador)
-  }, [conteudo, paginaEditor, salvarNoSupabase, titulo])
+  }, [conteudo, notaSelecionada, paginaEditor, salvarNoSupabase, tipoConteudo, titulo])
 
   if (verificandoSessao) return <main className="flex min-h-screen items-center justify-center bg-[#1d1d1b] text-[#c8bda9]">Verificando sessão...</main>
   if (!sessao) return <TelaAutenticacao />
