@@ -66,6 +66,22 @@ function App() {
     if (supabase) await supabase.auth.signOut()
   }
 
+  async function excluirNota(id: string) {
+    if (!supabase) {
+      setErro('Supabase não configurado. Verifique VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY.')
+      return
+    }
+
+    const { error } = await supabase.from('notas').delete().eq('id', id)
+
+    if (error) {
+      setErro(`Não foi possível excluir a nota: ${error.message}`)
+      return
+    }
+
+    setNotas((atuais) => atuais.filter((nota) => nota.id !== id))
+  }
+
   function voltarParaLista() {
     setNotaSelecionada(null)
     setTitulo('')
@@ -165,7 +181,7 @@ function App() {
   if (!sessao) return <TelaAutenticacao />
   if (paginaPerfil) return <TelaPerfil aoVoltar={voltarDoPerfil} aoSair={() => void sair()} />
   if (paginaEditor) return <TelaEditor titulo={titulo} conteudo={conteudo} tipoConteudo={tipoConteudo} statusSalvamento={statusSalvamento} erro={erro} menuFerramentas={menuFerramentas} aoMudarTitulo={setTitulo} aoMudarConteudo={setConteudo} aoVoltar={voltarParaLista} aoAlternarFerramentas={() => setMenuFerramentas((aberto) => !aberto)} aoFecharFerramentas={() => setMenuFerramentas(false)} />
-  return <TelaNotas notas={notas} busca={busca} carregando={carregando} erro={erro} menuCriacao={menuCriacao} aoMudarBusca={setBusca} aoAbrirNota={abrirNota} aoAbrirEditor={abrirEditor} aoAlternarMenu={() => setMenuCriacao((aberto) => !aberto)} aoAbrirPerfil={abrirPerfil} />
+  return <TelaNotas notas={notas} busca={busca} carregando={carregando} erro={erro} menuCriacao={menuCriacao} aoMudarBusca={setBusca} aoAbrirNota={abrirNota} aoAbrirEditor={abrirEditor} aoAlternarMenu={() => setMenuCriacao((aberto) => !aberto)} aoAbrirPerfil={abrirPerfil} aoExcluirNota={excluirNota} />
 }
 
 export default App
