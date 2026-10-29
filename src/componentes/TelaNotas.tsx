@@ -166,7 +166,7 @@ export function TelaNotas({ notas, busca, carregando, erro, menuCriacao, aoMudar
             }
             className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-[#4a4842] text-[#c8bda9] transition hover:bg-[#302f2b] hover:text-[#eee9df] sm:h-10 sm:w-10"
           >
-            {ordemMaisRecente ? '↓' : '↑'}
+            {ordemMaisRecente ? '↓↑' : '↑↓'}
           </button>
           <button
             type="button"
