@@ -1,7 +1,6 @@
-import type { Nota, TipoConteudo } from '../tipos'
+import type { TipoConteudo } from '../tipos'
 
 type Props = {
-  notaAtual?: Nota
   titulo: string
   conteudo: string
   tipoConteudo: TipoConteudo
@@ -16,7 +15,6 @@ type Props = {
 }
 
 export function TelaEditor({
-  notaAtual,
   titulo,
   conteudo,
   tipoConteudo,
@@ -31,16 +29,12 @@ export function TelaEditor({
 }: Props) {
   return (
     <main className="min-h-screen bg-[#1d1d1b] text-[#eee9df]">
-      <header className="border-b border-[#3b3a36] bg-[#171715]">
-        <div className="mx-auto flex max-w-4xl items-center gap-4 px-6 py-5">
+      <header className="fixed left-0 top-0 z-20 w-full">
+        <div className="px-4 py-4 sm:px-6">
           <button type="button" onClick={aoVoltar} aria-label="Voltar para as notas" className="rounded-lg p-2 text-[#c8bda9] transition hover:bg-[#302f2b] hover:text-[#eee9df]">←</button>
-          <div>
-            <p className="text-sm font-semibold uppercase tracking-[0.2em] text-[#c8bda9]">Agenda Inteligente</p>
-            <h1 className="mt-1 text-xl font-semibold">{notaAtual ? `Editar ${tipoConteudo === 'lista' ? 'lista' : 'nota'}` : `Nova ${tipoConteudo === 'lista' ? 'lista' : 'nota'}`}</h1>
-          </div>
         </div>
       </header>
-      <div className="mx-auto max-w-4xl px-6 py-10">
+      <div className="mx-auto max-w-4xl px-6 pb-10 pt-24">
         {erro && <p className="mb-6 rounded-lg border border-[#744d48] bg-[#382725] px-4 py-3 text-sm text-[#e2a99d]">{erro}</p>}
         <div>
           {statusSalvamento && <span className="mt-3 block text-xs text-[#9b978e]">{statusSalvamento}</span>}
