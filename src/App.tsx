@@ -1,5 +1,4 @@
-import { useEffect, useState } from 'react'
-import type { FormEvent } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import type { Session } from '@supabase/supabase-js'
 import { TelaAutenticacao } from './componentes/TelaAutenticacao'
 import { TelaEditor } from './componentes/TelaEditor'
@@ -24,8 +23,9 @@ function App() {
   const [menuCriacao, setMenuCriacao] = useState(false)
   const [menuFerramentas, setMenuFerramentas] = useState(false)
   const [carregando, setCarregando] = useState(true)
-  const [salvando, setSalvando] = useState(false)
+  const [statusSalvamento, setStatusSalvamento] = useState('')
   const [erro, setErro] = useState<string | null>(null)
+  const ultimaVersaoSalva = useRef('')
 
   useEffect(() => {
     if (!supabase) return
@@ -70,6 +70,7 @@ function App() {
     setConteudo('')
     setPaginaEditor(false)
     setMenuFerramentas(false)
+    setStatusSalvamento('')
   }
 
   function abrirEditor(tipo: TipoConteudo) {
@@ -77,6 +78,7 @@ function App() {
     setTitulo('')
     setConteudo('')
     setTipoConteudo(tipo)
+    ultimaVersaoSalva.current = ''
     setMenuCriacao(false)
     setPaginaEditor(true)
   }
@@ -86,54 +88,70 @@ function App() {
     setTitulo(nota.title)
     setConteudo(nota.content)
     setTipoConteudo(nota.type ?? 'nota')
+    ultimaVersaoSalva.current = `${nota.title}\n${nota.content}\n${nota.type ?? 'nota'}`
     setPaginaEditor(true)
   }
 
-  async function salvarConteudo(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault()
+  const salvarNoSupabase = useCallback(async (fecharEditor: boolean) => {
     const tituloTratado = titulo.trim()
     const conteudoTratado = conteudo.trim()
-    if (!tituloTratado || !conteudoTratado) return
+    const versaoAtual = `${tituloTratado}\n${conteudoTratado}\n${tipoConteudo}`
+
+    if (!tituloTratado || !conteudoTratado || versaoAtual === ultimaVersaoSalva.current) {
+      return
+    }
+
     if (!supabase) {
       setErro('Supabase não configurado. Verifique VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY.')
       return
     }
-    setSalvando(true)
+
+    setStatusSalvamento('Salvando...')
     setErro(null)
+
     if (notaSelecionada) {
       const { data, error } = await supabase.from('notas').update({ titulo: tituloTratado, conteudo: conteudoTratado, tipo: tipoConteudo }).eq('id', notaSelecionada).select('id, titulo, conteudo, tipo, atualizado_em').single()
-      if (error) setErro(`Não foi possível atualizar a nota: ${error.message}`)
-      else {
+      if (error) {
+        setErro(`Não foi possível atualizar a nota: ${error.message}`)
+        setStatusSalvamento('')
+      } else {
         setNotas((atuais) => atuais.map((nota) => nota.id === notaSelecionada ? converterNota(data) : nota))
-        voltarParaLista()
+        ultimaVersaoSalva.current = versaoAtual
+        setStatusSalvamento('Salvo')
+        if (fecharEditor) voltarParaLista()
       }
     } else {
       const { data, error } = await supabase.from('notas').insert({ titulo: tituloTratado, conteudo: conteudoTratado, tipo: tipoConteudo }).select('id, titulo, conteudo, tipo, atualizado_em').single()
-      if (error) setErro(`Não foi possível criar a nota: ${error.message}`)
-      else {
+      if (error) {
+        setErro(`Não foi possível criar a nota: ${error.message}`)
+        setStatusSalvamento('')
+      } else {
+        const notaCriada = converterNota(data)
         setNotas((atuais) => [converterNota(data), ...atuais])
-        voltarParaLista()
+        setNotaSelecionada(notaCriada.id)
+        ultimaVersaoSalva.current = versaoAtual
+        setStatusSalvamento('Salvo')
+        if (fecharEditor) voltarParaLista()
       }
     }
-    setSalvando(false)
-  }
 
-  async function excluirConteudo() {
-    if (!notaSelecionada || !supabase) return
-    setSalvando(true)
-    setErro(null)
-    const { error } = await supabase.from('notas').delete().eq('id', notaSelecionada)
-    if (error) setErro(`Não foi possível excluir a nota: ${error.message}`)
-    else {
-      setNotas((atuais) => atuais.filter((nota) => nota.id !== notaSelecionada))
-      voltarParaLista()
+  }, [conteudo, notaSelecionada, tipoConteudo, titulo])
+
+  useEffect(() => {
+    if (!paginaEditor || !titulo.trim() || !conteudo.trim()) {
+      return
     }
-    setSalvando(false)
-  }
+
+    const temporizador = window.setTimeout(() => {
+      void salvarNoSupabase(false)
+    }, 1000)
+
+    return () => window.clearTimeout(temporizador)
+  }, [conteudo, paginaEditor, salvarNoSupabase, titulo])
 
   if (verificandoSessao) return <main className="flex min-h-screen items-center justify-center bg-[#1d1d1b] text-[#c8bda9]">Verificando sessão...</main>
   if (!sessao) return <TelaAutenticacao />
-  if (paginaEditor) return <TelaEditor notaAtual={notas.find((nota) => nota.id === notaSelecionada)} titulo={titulo} conteudo={conteudo} tipoConteudo={tipoConteudo} salvando={salvando} erro={erro} menuFerramentas={menuFerramentas} aoMudarTitulo={setTitulo} aoMudarConteudo={setConteudo} aoSalvar={salvarConteudo} aoExcluir={excluirConteudo} aoVoltar={voltarParaLista} aoAlternarFerramentas={() => setMenuFerramentas((aberto) => !aberto)} aoFecharFerramentas={() => setMenuFerramentas(false)} aoSair={() => void sair()} />
+  if (paginaEditor) return <TelaEditor notaAtual={notas.find((nota) => nota.id === notaSelecionada)} titulo={titulo} conteudo={conteudo} tipoConteudo={tipoConteudo} statusSalvamento={statusSalvamento} erro={erro} menuFerramentas={menuFerramentas} aoMudarTitulo={setTitulo} aoMudarConteudo={setConteudo} aoVoltar={voltarParaLista} aoAlternarFerramentas={() => setMenuFerramentas((aberto) => !aberto)} aoFecharFerramentas={() => setMenuFerramentas(false)} aoSair={() => void sair()} />
   return <TelaNotas notas={notas} busca={busca} carregando={carregando} erro={erro} menuCriacao={menuCriacao} aoMudarBusca={setBusca} aoAbrirNota={abrirNota} aoAbrirEditor={abrirEditor} aoAlternarMenu={() => setMenuCriacao((aberto) => !aberto)} aoSair={() => void sair()} />
 }
 
