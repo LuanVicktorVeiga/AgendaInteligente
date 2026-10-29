@@ -123,7 +123,7 @@ export function TelaNotas({ notas, busca, carregando, erro, menuCriacao, aoMudar
           </section>
         </div>
       </div>
-      {menuCriacao && <div className="fixed bottom-24 right-6 flex flex-col gap-2 rounded-xl border border-[#4a4842] bg-[#292825] p-2 shadow-xl"><button type="button" onClick={() => aoAbrirEditor('lista')} className="rounded-lg px-4 py-2 text-left text-sm font-semibold transition hover:bg-[#3a3833]">Lista</button><button type="button" onClick={() => aoAbrirEditor('nota')} className="rounded-lg px-4 py-2 text-left text-sm font-semibold transition hover:bg-[#3a3833]">Nota</button></div>}
+      {menuCriacao && <div className="fixed bottom-24 right-6 flex flex-col gap-2"><button type="button" onClick={() => aoAbrirEditor('lista')} className="min-w-32 rounded-2xl border border-[#4a4842] bg-[#292825] px-5 py-3 text-center text-sm font-semibold text-[#eee9df] shadow-lg transition hover:border-[#c8bda9] hover:bg-[#3a3833]">Lista</button><button type="button" onClick={() => aoAbrirEditor('nota')} className="min-w-32 rounded-2xl border border-[#4a4842] bg-[#292825] px-5 py-3 text-center text-sm font-semibold text-[#eee9df] shadow-lg transition hover:border-[#c8bda9] hover:bg-[#3a3833]">Nota</button></div>}
       <button type="button" onClick={aoAlternarMenu} aria-label="Criar novo conteúdo" className="fixed bottom-6 right-6 flex h-14 w-14 items-center justify-center rounded-full bg-[#c8bda9] text-3xl font-light text-[#24231f] shadow-lg transition hover:bg-[#d8cebd]">{menuCriacao ? '×' : '+'}</button>
     </main>
   )
