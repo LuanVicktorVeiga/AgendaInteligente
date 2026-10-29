@@ -6,15 +6,14 @@ type Props = {
 export function TelaPerfil({ aoVoltar, aoSair }: Props) {
   return (
     <main className="min-h-screen bg-[#1d1d1b] text-[#eee9df]">
-      <header className="border-b border-[#3b3a36] bg-[#171715]">
-        <div className="mx-auto flex max-w-3xl items-center gap-4 px-6 py-5">
+      <header className="fixed left-0 top-0 z-20 w-full">
+        <div className="px-4 py-4 sm:px-6">
           <button type="button" onClick={aoVoltar} aria-label="Voltar para as notas" className="rounded-lg p-2 text-[#c8bda9] transition hover:bg-[#302f2b] hover:text-[#eee9df]">
             ←
           </button>
-          <h1 className="text-xl font-semibold">Perfil</h1>
         </div>
       </header>
-      <div className="mx-auto max-w-3xl px-6 py-10">
+      <div className="mx-auto max-w-3xl px-6 pb-10 pt-24">
         <section className="rounded-2xl border border-[#3b3a36] bg-[#292825] p-6">
           <h2 className="text-lg font-semibold">Conta</h2>
           <p className="mt-2 text-sm text-[#aaa59c]">
