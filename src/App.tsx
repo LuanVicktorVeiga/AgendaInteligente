@@ -3,6 +3,7 @@ import type { Session } from '@supabase/supabase-js'
 import { TelaAutenticacao } from './componentes/TelaAutenticacao'
 import { TelaEditor } from './componentes/TelaEditor'
 import { TelaNotas } from './componentes/TelaNotas'
+import { TelaPerfil } from './componentes/TelaPerfil'
 import type { Nota, TipoConteudo } from './tipos'
 import { supabase } from './lib/supabase'
 
@@ -20,6 +21,7 @@ function App() {
   const [conteudo, setConteudo] = useState('')
   const [tipoConteudo, setTipoConteudo] = useState<TipoConteudo>('nota')
   const [paginaEditor, setPaginaEditor] = useState(false)
+  const [paginaPerfil, setPaginaPerfil] = useState(false)
   const [menuCriacao, setMenuCriacao] = useState(false)
   const [menuFerramentas, setMenuFerramentas] = useState(false)
   const [carregando, setCarregando] = useState(true)
@@ -71,6 +73,16 @@ function App() {
     setPaginaEditor(false)
     setMenuFerramentas(false)
     setStatusSalvamento('')
+  }
+
+  function abrirPerfil() {
+    setPaginaEditor(false)
+    setPaginaPerfil(true)
+    setMenuFerramentas(false)
+  }
+
+  function voltarDoPerfil() {
+    setPaginaPerfil(false)
   }
 
   function abrirEditor(tipo: TipoConteudo) {
@@ -151,8 +163,9 @@ function App() {
 
   if (verificandoSessao) return <main className="flex min-h-screen items-center justify-center bg-[#1d1d1b] text-[#c8bda9]">Verificando sessão...</main>
   if (!sessao) return <TelaAutenticacao />
-  if (paginaEditor) return <TelaEditor notaAtual={notas.find((nota) => nota.id === notaSelecionada)} titulo={titulo} conteudo={conteudo} tipoConteudo={tipoConteudo} statusSalvamento={statusSalvamento} erro={erro} menuFerramentas={menuFerramentas} aoMudarTitulo={setTitulo} aoMudarConteudo={setConteudo} aoVoltar={voltarParaLista} aoAlternarFerramentas={() => setMenuFerramentas((aberto) => !aberto)} aoFecharFerramentas={() => setMenuFerramentas(false)} aoSair={() => void sair()} />
-  return <TelaNotas notas={notas} busca={busca} carregando={carregando} erro={erro} menuCriacao={menuCriacao} aoMudarBusca={setBusca} aoAbrirNota={abrirNota} aoAbrirEditor={abrirEditor} aoAlternarMenu={() => setMenuCriacao((aberto) => !aberto)} aoSair={() => void sair()} />
+  if (paginaPerfil) return <TelaPerfil aoVoltar={voltarDoPerfil} aoSair={() => void sair()} />
+  if (paginaEditor) return <TelaEditor notaAtual={notas.find((nota) => nota.id === notaSelecionada)} titulo={titulo} conteudo={conteudo} tipoConteudo={tipoConteudo} statusSalvamento={statusSalvamento} erro={erro} menuFerramentas={menuFerramentas} aoMudarTitulo={setTitulo} aoMudarConteudo={setConteudo} aoVoltar={voltarParaLista} aoAlternarFerramentas={() => setMenuFerramentas((aberto) => !aberto)} aoFecharFerramentas={() => setMenuFerramentas(false)} />
+  return <TelaNotas notas={notas} busca={busca} carregando={carregando} erro={erro} menuCriacao={menuCriacao} aoMudarBusca={setBusca} aoAbrirNota={abrirNota} aoAbrirEditor={abrirEditor} aoAlternarMenu={() => setMenuCriacao((aberto) => !aberto)} aoAbrirPerfil={abrirPerfil} />
 }
 
 export default App
