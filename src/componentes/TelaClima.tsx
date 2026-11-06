@@ -3,6 +3,10 @@ import { consultarClima, type PrevisaoClima } from '../lib/clima'
 
 type Props = {
   aoVoltar: () => void
+  consultaInicial: PrevisaoClima | null
+  aoSalvarConsulta: (consulta: PrevisaoClima) => void
+  aoRemoverConsulta: () => void
+  formularioAberto: boolean
 }
 
 function dataAtual() {
@@ -19,13 +23,13 @@ function formatarData(data: string) {
   return new Intl.DateTimeFormat('pt-BR', { dateStyle: 'long' }).format(new Date(`${data}T12:00:00`))
 }
 
-export function TelaClima({ aoVoltar }: Props) {
-  const [local, setLocal] = useState('')
-  const [data, setData] = useState(dataAtual)
-  const [horario, setHorario] = useState(horaAtual)
-  const [modalAberto, setModalAberto] = useState(true)
-  const [minimizado, setMinimizado] = useState(false)
-  const [consulta, setConsulta] = useState<PrevisaoClima | null>(null)
+export function TelaClima({ aoVoltar, consultaInicial, aoSalvarConsulta, aoRemoverConsulta, formularioAberto }: Props) {
+  const [local, setLocal] = useState(consultaInicial?.local ?? '')
+  const [data, setData] = useState(consultaInicial?.data ?? dataAtual)
+  const [horario, setHorario] = useState(consultaInicial?.horario ?? horaAtual)
+  const [modalAberto, setModalAberto] = useState(formularioAberto)
+  const [minimizado, setMinimizado] = useState(Boolean(consultaInicial))
+  const [consulta, setConsulta] = useState<PrevisaoClima | null>(consultaInicial)
   const [carregando, setCarregando] = useState(false)
   const [erro, setErro] = useState<string | null>(null)
 
@@ -38,6 +42,7 @@ export function TelaClima({ aoVoltar }: Props) {
     try {
       const resultado = await consultarClima(localTratado, data, horario)
       setConsulta(resultado)
+      aoSalvarConsulta(resultado)
       setMinimizado(false)
       setModalAberto(false)
     } catch (error) {
@@ -115,6 +120,7 @@ export function TelaClima({ aoVoltar }: Props) {
           </div>
         </div>
         <button type="button" onClick={() => setModalAberto(true)} className="mt-4 w-full rounded-lg border border-[#d6d2c9] px-3 py-2 text-xs font-semibold text-[#57534b] transition hover:bg-[#f5f4f0]">Nova consulta</button>
+        <button type="button" onClick={aoRemoverConsulta} className="mt-2 w-full rounded-lg border border-[#d6aaa2] px-3 py-2 text-xs font-semibold text-[#9b4f43] transition hover:bg-[#fff3f0]">Remover consulta</button>
       </aside>}
     </>
   )

@@ -6,10 +6,28 @@ import { TelaNotas } from './componentes/TelaNotas'
 import { TelaPerfil } from './componentes/TelaPerfil'
 import { TelaClima } from './componentes/TelaClima'
 import type { Nota, TipoConteudo } from './tipos'
+import type { PrevisaoClima } from './lib/clima'
 import { supabase } from './lib/supabase'
 
 function converterNota(nota: { id: string; titulo: string; conteudo: string; tipo: TipoConteudo; atualizado_em: string }): Nota {
   return { id: nota.id, title: nota.titulo, content: nota.conteudo, type: nota.tipo, updatedAt: nota.atualizado_em }
+}
+
+const CHAVE_CLIMA_RASCUNHO = 'agenda-inteligente:clima:rascunho'
+
+function chaveClimaNota(id: string) {
+  return `agenda-inteligente:clima:${id}`
+}
+
+function carregarConsultaClima(chave: string): PrevisaoClima | null {
+  const valor = localStorage.getItem(chave)
+  if (!valor) return null
+  try {
+    return JSON.parse(valor) as PrevisaoClima
+  } catch {
+    localStorage.removeItem(chave)
+    return null
+  }
 }
 
 function App() {
@@ -24,6 +42,7 @@ function App() {
   const [paginaEditor, setPaginaEditor] = useState(false)
   const [paginaPerfil, setPaginaPerfil] = useState(false)
   const [paginaClima, setPaginaClima] = useState(false)
+  const [consultaClima, setConsultaClima] = useState<PrevisaoClima | null>(null)
   const [menuFerramentas, setMenuFerramentas] = useState(false)
   const [carregando, setCarregando] = useState(true)
   const [statusSalvamento, setStatusSalvamento] = useState('')
@@ -88,6 +107,7 @@ function App() {
     setTitulo('')
     setConteudo('')
     setPaginaEditor(false)
+    setPaginaClima(false)
     setMenuFerramentas(false)
     setStatusSalvamento('')
   }
@@ -111,12 +131,20 @@ function App() {
     setPaginaClima(false)
   }
 
+  function removerConsultaClima() {
+    if (notaSelecionada) localStorage.removeItem(chaveClimaNota(notaSelecionada))
+    else localStorage.removeItem(CHAVE_CLIMA_RASCUNHO)
+    setConsultaClima(null)
+    setPaginaClima(false)
+  }
+
   function abrirEditor() {
     setNotaSelecionada(null)
     setTitulo('')
     setConteudo('')
     setTipoConteudo('nota')
     ultimaVersaoSalva.current = ''
+    setConsultaClima(carregarConsultaClima(CHAVE_CLIMA_RASCUNHO))
     setPaginaEditor(true)
   }
 
@@ -125,6 +153,7 @@ function App() {
     setTitulo(nota.title)
     setConteudo(nota.content)
     setTipoConteudo(nota.type ?? 'nota')
+    setConsultaClima(carregarConsultaClima(chaveClimaNota(nota.id)))
     ultimaVersaoSalva.current = `${nota.title}\n${nota.content}\n${nota.type ?? 'nota'}`
     setPaginaEditor(true)
   }
@@ -164,6 +193,12 @@ function App() {
         setStatusSalvamento('')
       } else {
         const notaCriada = converterNota(data)
+        const consultaRascunho = carregarConsultaClima(CHAVE_CLIMA_RASCUNHO)
+        if (consultaRascunho) {
+          localStorage.setItem(chaveClimaNota(notaCriada.id), JSON.stringify(consultaRascunho))
+          localStorage.removeItem(CHAVE_CLIMA_RASCUNHO)
+          setConsultaClima(consultaRascunho)
+        }
         setNotas((atuais) => [converterNota(data), ...atuais])
         setNotaSelecionada(notaCriada.id)
         ultimaVersaoSalva.current = versaoAtual
@@ -189,7 +224,7 @@ function App() {
   if (verificandoSessao) return <main className="flex min-h-screen items-center justify-center bg-[#1d1d1b] text-[#c8bda9]">Verificando sessão...</main>
   if (!sessao) return <TelaAutenticacao />
   if (paginaPerfil) return <TelaPerfil aoVoltar={voltarDoPerfil} aoSair={() => void sair()} />
-  if (paginaEditor) return <><TelaEditor titulo={titulo} conteudo={conteudo} tipoConteudo={tipoConteudo} statusSalvamento={statusSalvamento} erro={erro} menuFerramentas={menuFerramentas} aoMudarTitulo={setTitulo} aoMudarConteudo={setConteudo} aoVoltar={voltarParaLista} aoAlternarFerramentas={() => setMenuFerramentas((aberto) => !aberto)} aoFecharFerramentas={() => setMenuFerramentas(false)} aoAbrirClima={abrirClima} />{paginaClima && <TelaClima aoVoltar={voltarDoClima} />}</>
+  if (paginaEditor) return <><TelaEditor titulo={titulo} conteudo={conteudo} tipoConteudo={tipoConteudo} statusSalvamento={statusSalvamento} erro={erro} menuFerramentas={menuFerramentas} aoMudarTitulo={setTitulo} aoMudarConteudo={setConteudo} aoVoltar={voltarParaLista} aoAlternarFerramentas={() => setMenuFerramentas((aberto) => !aberto)} aoFecharFerramentas={() => setMenuFerramentas(false)} aoAbrirClima={abrirClima} />{(paginaClima || consultaClima) && <TelaClima key={`${notaSelecionada ?? 'rascunho'}-${paginaClima ? 'aberto' : 'fechado'}`} consultaInicial={consultaClima} formularioAberto={paginaClima} aoSalvarConsulta={(consulta) => { setConsultaClima(consulta); localStorage.setItem(notaSelecionada ? chaveClimaNota(notaSelecionada) : CHAVE_CLIMA_RASCUNHO, JSON.stringify(consulta)) }} aoRemoverConsulta={removerConsultaClima} aoVoltar={voltarDoClima} />}</>
   return <TelaNotas notas={notas} busca={busca} carregando={carregando} erro={erro} aoMudarBusca={setBusca} aoAbrirNota={abrirNota} aoAbrirEditor={abrirEditor} aoAbrirPerfil={abrirPerfil} aoExcluirNota={excluirNota} />
 }
 
