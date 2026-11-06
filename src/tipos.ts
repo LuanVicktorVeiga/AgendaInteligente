@@ -8,4 +8,5 @@ export type Nota = {
   content: string
   updatedAt: string
   type?: TipoConteudo
+  compartilhada?: boolean
 }
