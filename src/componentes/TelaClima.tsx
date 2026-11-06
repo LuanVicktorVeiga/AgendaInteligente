@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from 'react'
+import { consultarClima, type PrevisaoClima } from '../lib/clima'
 
 type Props = {
   aoVoltar: () => void
@@ -24,26 +25,26 @@ export function TelaClima({ aoVoltar }: Props) {
   const [horario, setHorario] = useState(horaAtual)
   const [modalAberto, setModalAberto] = useState(true)
   const [minimizado, setMinimizado] = useState(false)
-  const [consulta, setConsulta] = useState<{
-    local: string
-    data: string
-    horario: string
-    temperaturaMaxima: number
-    temperaturaMinima: number
-  } | null>(null)
+  const [consulta, setConsulta] = useState<PrevisaoClima | null>(null)
+  const [carregando, setCarregando] = useState(false)
+  const [erro, setErro] = useState<string | null>(null)
 
-  function consultar(event: FormEvent<HTMLFormElement>) {
+  async function consultar(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     const localTratado = local.trim()
     if (!localTratado) return
-    setConsulta({
-      local: localTratado,
-      data,
-      horario,
-      temperaturaMaxima: 28,
-      temperaturaMinima: 19,
-    })
-    setModalAberto(false)
+    setCarregando(true)
+    setErro(null)
+    try {
+      const resultado = await consultarClima(localTratado, data, horario)
+      setConsulta(resultado)
+      setMinimizado(false)
+      setModalAberto(false)
+    } catch (error) {
+      setErro(error instanceof Error ? error.message : 'Não foi possível consultar o clima.')
+    } finally {
+      setCarregando(false)
+    }
   }
 
   return (
@@ -59,6 +60,7 @@ export function TelaClima({ aoVoltar }: Props) {
           </div>
 
           <form onSubmit={consultar} className="mt-6 space-y-4">
+            {erro && <p role="alert" className="rounded-lg border border-[#d6aaa2] bg-[#fff3f0] px-3 py-2 text-sm text-[#9b4f43]">{erro}</p>}
             <div>
               <label htmlFor="local-clima" className="mb-2 block text-sm font-medium">Local a ser consultado</label>
               <input id="local-clima" value={local} onChange={(event) => setLocal(event.target.value)} placeholder="Ex.: São Paulo, SP" className="w-full rounded-xl border border-[#d6d2c9] px-4 py-3 outline-none transition focus:border-[#8c8477] focus:ring-2 focus:ring-[#8c8477]/20" required />
@@ -73,13 +75,13 @@ export function TelaClima({ aoVoltar }: Props) {
                 <input id="horario-clima" type="time" value={horario} onChange={(event) => setHorario(event.target.value)} className="w-full rounded-xl border border-[#d6d2c9] px-3 py-3 outline-none focus:border-[#8c8477] focus:ring-2 focus:ring-[#8c8477]/20" />
               </div>
             </div>
-            <button type="submit" className="w-full rounded-xl bg-[#292825] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#45423c]">Consultar clima</button>
+            <button type="submit" disabled={carregando} className="w-full rounded-xl bg-[#292825] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#45423c] disabled:cursor-wait disabled:opacity-60">{carregando ? 'Consultando...' : 'Consultar clima'}</button>
           </form>
         </section>
       </div>}
 
       {consulta && minimizado && <button type="button" onClick={() => setMinimizado(false)} className="fixed bottom-6 right-6 z-40 flex items-center gap-2 rounded-full border border-[#e1ded7] bg-white px-4 py-3 text-sm font-semibold text-[#292825] shadow-2xl transition hover:bg-[#f5f4f0]" aria-label="Restaurar consulta de clima">
-        <span className="text-xl" role="img" aria-label="Tempo parcialmente nublado">⛅</span>
+        <span className="text-xl" role="img" aria-label={consulta.descricao}>{consulta.icone}</span>
         <span className="max-w-32 truncate">{consulta.local}</span>
       </button>}
 
@@ -90,7 +92,7 @@ export function TelaClima({ aoVoltar }: Props) {
             <h2 className="mt-1 truncate text-lg font-semibold">{consulta.local}</h2>
           </div>
           <div className="flex items-start gap-2">
-            <span className="text-4xl leading-none" role="img" aria-label="Tempo parcialmente nublado">⛅</span>
+            <span className="text-4xl leading-none" role="img" aria-label={consulta.descricao}>{consulta.icone}</span>
             <button type="button" onClick={() => setMinimizado(true)} className="rounded-lg px-1 text-lg leading-none text-[#77746d] transition hover:bg-[#f5f4f0] hover:text-[#292825]" aria-label="Minimizar consulta de clima">−</button>
           </div>
         </div>
