@@ -4,6 +4,7 @@ import { TelaAutenticacao } from './componentes/TelaAutenticacao'
 import { TelaEditor } from './componentes/TelaEditor'
 import { TelaNotas } from './componentes/TelaNotas'
 import { TelaPerfil } from './componentes/TelaPerfil'
+import { TelaClima } from './componentes/TelaClima'
 import type { Nota, TipoConteudo } from './tipos'
 import { supabase } from './lib/supabase'
 
@@ -22,6 +23,7 @@ function App() {
   const [tipoConteudo, setTipoConteudo] = useState<TipoConteudo>('nota')
   const [paginaEditor, setPaginaEditor] = useState(false)
   const [paginaPerfil, setPaginaPerfil] = useState(false)
+  const [paginaClima, setPaginaClima] = useState(false)
   const [menuFerramentas, setMenuFerramentas] = useState(false)
   const [carregando, setCarregando] = useState(true)
   const [statusSalvamento, setStatusSalvamento] = useState('')
@@ -98,6 +100,15 @@ function App() {
 
   function voltarDoPerfil() {
     setPaginaPerfil(false)
+  }
+
+  function abrirClima() {
+    setMenuFerramentas(false)
+    setPaginaClima(true)
+  }
+
+  function voltarDoClima() {
+    setPaginaClima(false)
   }
 
   function abrirEditor() {
@@ -178,7 +189,7 @@ function App() {
   if (verificandoSessao) return <main className="flex min-h-screen items-center justify-center bg-[#1d1d1b] text-[#c8bda9]">Verificando sessão...</main>
   if (!sessao) return <TelaAutenticacao />
   if (paginaPerfil) return <TelaPerfil aoVoltar={voltarDoPerfil} aoSair={() => void sair()} />
-  if (paginaEditor) return <TelaEditor titulo={titulo} conteudo={conteudo} tipoConteudo={tipoConteudo} statusSalvamento={statusSalvamento} erro={erro} menuFerramentas={menuFerramentas} aoMudarTitulo={setTitulo} aoMudarConteudo={setConteudo} aoVoltar={voltarParaLista} aoAlternarFerramentas={() => setMenuFerramentas((aberto) => !aberto)} aoFecharFerramentas={() => setMenuFerramentas(false)} />
+  if (paginaEditor) return <><TelaEditor titulo={titulo} conteudo={conteudo} tipoConteudo={tipoConteudo} statusSalvamento={statusSalvamento} erro={erro} menuFerramentas={menuFerramentas} aoMudarTitulo={setTitulo} aoMudarConteudo={setConteudo} aoVoltar={voltarParaLista} aoAlternarFerramentas={() => setMenuFerramentas((aberto) => !aberto)} aoFecharFerramentas={() => setMenuFerramentas(false)} aoAbrirClima={abrirClima} />{paginaClima && <TelaClima aoVoltar={voltarDoClima} />}</>
   return <TelaNotas notas={notas} busca={busca} carregando={carregando} erro={erro} aoMudarBusca={setBusca} aoAbrirNota={abrirNota} aoAbrirEditor={abrirEditor} aoAbrirPerfil={abrirPerfil} aoExcluirNota={excluirNota} />
 }
 

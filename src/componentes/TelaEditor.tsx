@@ -35,6 +35,7 @@ type Props = {
   aoVoltar: () => void
   aoAlternarFerramentas: () => void
   aoFecharFerramentas: () => void
+  aoAbrirClima: () => void
 }
 
 export function TelaEditor({
@@ -49,6 +50,7 @@ export function TelaEditor({
   aoVoltar,
   aoAlternarFerramentas,
   aoFecharFerramentas,
+  aoAbrirClima,
 }: Props) {
   const [novoItem, setNovoItem] = useState('')
   const [indiceArrastado, setIndiceArrastado] = useState<number | null>(null)
@@ -128,7 +130,7 @@ export function TelaEditor({
           )}
         </div>
       </div>
-      {menuFerramentas && <div className="fixed bottom-24 right-6 flex flex-col gap-1 rounded-xl border border-[#4a4842] bg-[#292825] p-2 shadow-xl">{['Relógio', 'Clima', 'Despertador'].map((ferramenta) => <button type="button" key={ferramenta} onClick={aoFecharFerramentas} className="rounded-lg px-4 py-2 text-left text-sm font-semibold text-[#eee9df] transition hover:bg-[#3a3833]">{ferramenta}</button>)}</div>}
+      {menuFerramentas && <div className="fixed bottom-24 right-6 flex flex-col gap-1 rounded-xl border border-[#4a4842] bg-[#292825] p-2 shadow-xl">{['Relógio', 'Clima', 'Despertador'].map((ferramenta) => <button type="button" key={ferramenta} onClick={ferramenta === 'Clima' ? aoAbrirClima : aoFecharFerramentas} className="rounded-lg px-4 py-2 text-left text-sm font-semibold text-[#eee9df] transition hover:bg-[#3a3833]">{ferramenta}</button>)}</div>}
       <button type="button" onClick={aoAlternarFerramentas} aria-label="Abrir ferramentas futuras" className="fixed bottom-6 right-6 flex h-14 w-14 items-center justify-center rounded-full border border-[#4a4842] bg-[#292825] text-xl text-[#c8bda9] shadow-lg transition hover:bg-[#3a3833] hover:text-[#eee9df]">⋮</button>
     </main>
   )
