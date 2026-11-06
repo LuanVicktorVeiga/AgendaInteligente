@@ -22,7 +22,6 @@ function App() {
   const [tipoConteudo, setTipoConteudo] = useState<TipoConteudo>('nota')
   const [paginaEditor, setPaginaEditor] = useState(false)
   const [paginaPerfil, setPaginaPerfil] = useState(false)
-  const [menuCriacao, setMenuCriacao] = useState(false)
   const [menuFerramentas, setMenuFerramentas] = useState(false)
   const [carregando, setCarregando] = useState(true)
   const [statusSalvamento, setStatusSalvamento] = useState('')
@@ -101,13 +100,12 @@ function App() {
     setPaginaPerfil(false)
   }
 
-  function abrirEditor(tipo: TipoConteudo) {
+  function abrirEditor() {
     setNotaSelecionada(null)
     setTitulo('')
     setConteudo('')
-    setTipoConteudo(tipo)
+    setTipoConteudo('nota')
     ultimaVersaoSalva.current = ''
-    setMenuCriacao(false)
     setPaginaEditor(true)
   }
 
@@ -181,7 +179,7 @@ function App() {
   if (!sessao) return <TelaAutenticacao />
   if (paginaPerfil) return <TelaPerfil aoVoltar={voltarDoPerfil} aoSair={() => void sair()} />
   if (paginaEditor) return <TelaEditor titulo={titulo} conteudo={conteudo} tipoConteudo={tipoConteudo} statusSalvamento={statusSalvamento} erro={erro} menuFerramentas={menuFerramentas} aoMudarTitulo={setTitulo} aoMudarConteudo={setConteudo} aoVoltar={voltarParaLista} aoAlternarFerramentas={() => setMenuFerramentas((aberto) => !aberto)} aoFecharFerramentas={() => setMenuFerramentas(false)} />
-  return <TelaNotas notas={notas} busca={busca} carregando={carregando} erro={erro} menuCriacao={menuCriacao} aoMudarBusca={setBusca} aoAbrirNota={abrirNota} aoAbrirEditor={abrirEditor} aoAlternarMenu={() => setMenuCriacao((aberto) => !aberto)} aoAbrirPerfil={abrirPerfil} aoExcluirNota={excluirNota} />
+  return <TelaNotas notas={notas} busca={busca} carregando={carregando} erro={erro} aoMudarBusca={setBusca} aoAbrirNota={abrirNota} aoAbrirEditor={abrirEditor} aoAbrirPerfil={abrirPerfil} aoExcluirNota={excluirNota} />
 }
 
 export default App

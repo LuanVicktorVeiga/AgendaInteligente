@@ -1,16 +1,14 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import type { Nota, TipoConteudo } from '../tipos'
+import type { Nota } from '../tipos'
 
 type Props = {
   notas: Nota[]
   busca: string
   carregando: boolean
   erro: string | null
-  menuCriacao: boolean
   aoMudarBusca: (valor: string) => void
   aoAbrirNota: (nota: Nota) => void
-  aoAbrirEditor: (tipo: TipoConteudo) => void
-  aoAlternarMenu: () => void
+  aoAbrirEditor: () => void
   aoAbrirPerfil: () => void
   aoExcluirNota: (id: string) => void
 }
@@ -59,7 +57,7 @@ function CartaoNota({
   )
 }
 
-export function TelaNotas({ notas, busca, carregando, erro, menuCriacao, aoMudarBusca, aoAbrirNota, aoAbrirEditor, aoAlternarMenu, aoAbrirPerfil, aoExcluirNota }: Props) {
+export function TelaNotas({ notas, busca, carregando, erro, aoMudarBusca, aoAbrirNota, aoAbrirEditor, aoAbrirPerfil, aoExcluirNota }: Props) {
   const [exibicao, setExibicao] = useState<'grade' | 'lista'>('grade')
   const [ordemMaisRecente, setOrdemMaisRecente] = useState(true)
   const [menuAberto, setMenuAberto] = useState(false)
@@ -197,8 +195,7 @@ export function TelaNotas({ notas, busca, carregando, erro, menuCriacao, aoMudar
           </section>
         </div>
       </div>
-      {menuCriacao && <div className="fixed bottom-24 right-6 flex flex-col gap-2"><button type="button" onClick={() => aoAbrirEditor('lista')} className="min-w-32 rounded-2xl border border-[#4a4842] bg-[#292825] px-5 py-3 text-center text-sm font-semibold text-[#eee9df] shadow-lg transition hover:border-[#c8bda9] hover:bg-[#3a3833]">Lista</button><button type="button" onClick={() => aoAbrirEditor('nota')} className="min-w-32 rounded-2xl border border-[#4a4842] bg-[#292825] px-5 py-3 text-center text-sm font-semibold text-[#eee9df] shadow-lg transition hover:border-[#c8bda9] hover:bg-[#3a3833]">Nota</button></div>}
-      <button type="button" onClick={aoAlternarMenu} aria-label="Criar novo conteúdo" className="fixed bottom-6 right-6 flex h-14 w-14 items-center justify-center rounded-full bg-[#c8bda9] text-3xl font-light text-[#24231f] shadow-lg transition hover:bg-[#d8cebd]">{menuCriacao ? '×' : '+'}</button>
+      <button type="button" onClick={aoAbrirEditor} aria-label="Criar nova nota" className="fixed bottom-6 right-6 flex h-14 w-14 items-center justify-center rounded-full bg-[#c8bda9] text-3xl font-light text-[#24231f] shadow-lg transition hover:bg-[#d8cebd]">+</button>
     </main>
   )
 }
