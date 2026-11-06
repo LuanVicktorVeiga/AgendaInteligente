@@ -98,8 +98,18 @@ export function TelaEditor({
   return (
     <main className="min-h-screen bg-[#1d1d1b] text-[#eee9df]">
       <header className="fixed left-0 top-0 z-20 w-full bg-[#1d1d1b]">
-        <div className="px-4 py-4 sm:px-6">
+        <div className="flex items-center justify-between px-4 py-4 sm:px-6">
           <button type="button" onClick={aoVoltar} aria-label="Voltar para as notas" className="rounded-lg p-2 text-[#c8bda9] transition hover:bg-[#302f2b] hover:text-[#eee9df]">←</button>
+          <div className="relative">
+            {menuFerramentas && <div className="absolute right-12 top-1/2 flex -translate-y-1/2 flex-row gap-1 rounded-xl border border-[#4a4842] bg-[#292825] p-2 shadow-xl">{['Relógio', 'Clima', 'Despertador'].map((ferramenta) => <button type="button" key={ferramenta} onClick={ferramenta === 'Clima' ? aoAbrirClima : aoFecharFerramentas} className="whitespace-nowrap rounded-lg px-3 py-2 text-left text-sm font-semibold text-[#eee9df] transition hover:bg-[#3a3833]">{ferramenta}</button>)}</div>}
+            <button type="button" onClick={aoAlternarFerramentas} aria-label="Abrir ferramentas" aria-expanded={menuFerramentas} className="flex h-11 w-11 items-center justify-center rounded-full border border-[#4a4842] text-[#c8bda9] shadow-lg transition hover:bg-[#302f2b] hover:text-[#eee9df]">
+              <span className="flex flex-col gap-1" aria-hidden="true">
+                <span className="h-0.5 w-4 bg-current" />
+                <span className="h-0.5 w-4 bg-current" />
+                <span className="h-0.5 w-4 bg-current" />
+              </span>
+            </button>
+          </div>
         </div>
       </header>
       <div className="mx-auto max-w-4xl px-6 pb-10 pt-24">
@@ -130,8 +140,6 @@ export function TelaEditor({
           )}
         </div>
       </div>
-      {menuFerramentas && <div className="fixed bottom-24 right-6 flex flex-col gap-1 rounded-xl border border-[#4a4842] bg-[#292825] p-2 shadow-xl">{['Relógio', 'Clima', 'Despertador'].map((ferramenta) => <button type="button" key={ferramenta} onClick={ferramenta === 'Clima' ? aoAbrirClima : aoFecharFerramentas} className="rounded-lg px-4 py-2 text-left text-sm font-semibold text-[#eee9df] transition hover:bg-[#3a3833]">{ferramenta}</button>)}</div>}
-      <button type="button" onClick={aoAlternarFerramentas} aria-label="Abrir ferramentas futuras" className="fixed bottom-6 right-6 flex h-14 w-14 items-center justify-center rounded-full border border-[#4a4842] bg-[#292825] text-xl text-[#c8bda9] shadow-lg transition hover:bg-[#3a3833] hover:text-[#eee9df]">⋮</button>
     </main>
   )
 }
