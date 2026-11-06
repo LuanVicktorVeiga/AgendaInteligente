@@ -59,6 +59,26 @@ export type BancoDeDados = {
         }
         Relationships: []
       }
+      messages: {
+        Row: {
+          id: string
+          room_id: string
+          author_id: string
+          body: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          room_id: string
+          author_id: string
+          body: string
+          created_at?: string
+        }
+        Update: {
+          body?: string
+        }
+        Relationships: []
+      }
       note_invitations: {
         Row: {
           id: string
@@ -93,6 +113,26 @@ export type BancoDeDados = {
       recusar_convite: {
         Args: { p_convite_id: string }
         Returns: undefined
+      }
+      enviar_solicitacao_amizade: {
+        Args: { p_email: string }
+        Returns: undefined
+      }
+      aceitar_solicitacao_amizade: {
+        Args: { p_request_id: string }
+        Returns: string
+      }
+      recusar_solicitacao_amizade: {
+        Args: { p_request_id: string }
+        Returns: undefined
+      }
+      listar_solicitacoes_amizade: {
+        Args: Record<string, never>
+        Returns: Array<{ id: string; email: string; created_at: string }>
+      }
+      listar_amigos: {
+        Args: Record<string, never>
+        Returns: Array<{ friend_id: string; email: string; room_id: string }>
       }
     }
     Enums: {

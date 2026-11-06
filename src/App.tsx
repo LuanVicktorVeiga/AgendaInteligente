@@ -5,6 +5,7 @@ import { TelaEditor } from './componentes/TelaEditor'
 import { TelaNotas } from './componentes/TelaNotas'
 import { TelaPerfil } from './componentes/TelaPerfil'
 import { TelaClima } from './componentes/TelaClima'
+import { TelaChat } from './componentes/TelaChat'
 import type { Nota, TipoConteudo } from './tipos'
 import type { PrevisaoClima } from './lib/clima'
 import { supabase } from './lib/supabase'
@@ -51,6 +52,9 @@ function App() {
   const [erro, setErro] = useState<string | null>(null)
   const [convites, setConvites] = useState<Array<{ id: string; note_id: string; status: 'pending' | 'accepted' | 'rejected'; created_at: string; nota?: { titulo: string } | null }>>([])
   const [carregandoConvites, setCarregandoConvites] = useState(false)
+  const [solicitacoesAmizade, setSolicitacoesAmizade] = useState<Array<{ id: string; email: string; created_at: string }>>([])
+  const [amigos, setAmigos] = useState<Array<{ friend_id: string; email: string; room_id: string }>>([])
+  const [amigoSelecionado, setAmigoSelecionado] = useState<{ friend_id: string; email: string; room_id: string } | null>(null)
   const ultimaVersaoSalva = useRef('')
 
   useEffect(() => {
@@ -118,6 +122,18 @@ function App() {
     setCarregandoConvites(false)
   }
 
+  async function carregarAmizades() {
+    if (!supabase || !sessao) return
+    const [solicitacoes, lista] = await Promise.all([
+      supabase.rpc('listar_solicitacoes_amizade'),
+      supabase.rpc('listar_amigos'),
+    ])
+    if (solicitacoes.error) setErro(`Não foi possível carregar solicitações de amizade: ${solicitacoes.error.message}`)
+    else setSolicitacoesAmizade(solicitacoes.data)
+    if (lista.error) setErro(`Não foi possível carregar amigos: ${lista.error.message}`)
+    else setAmigos(lista.data)
+  }
+
   async function sair() {
     if (supabase) await supabase.auth.signOut()
   }
@@ -166,6 +182,7 @@ function App() {
     setPaginaPerfil(true)
     setMenuFerramentas(false)
     void carregarConvites()
+    void carregarAmizades()
   }
 
   function voltarDoPerfil() {
@@ -179,8 +196,29 @@ function App() {
       setErro(`Não foi possível responder ao convite: ${error.message}`)
       return
     }
+
     setConvites((atuais) => atuais.filter((convite) => convite.id !== id))
     if (aceitar) setVersaoSalas((versao) => versao + 1)
+  }
+
+  async function enviarSolicitacao(email: string) {
+    if (!supabase) return
+    const { error } = await supabase.rpc('enviar_solicitacao_amizade', { p_email: email })
+    if (error) {
+      setErro(`Não foi possível enviar a solicitação: ${error.message}`)
+      throw error
+    }
+    setErro(null)
+  }
+
+  async function responderSolicitacao(id: string, aceitar: boolean) {
+    if (!supabase) return
+    const { error } = await supabase.rpc(aceitar ? 'aceitar_solicitacao_amizade' : 'recusar_solicitacao_amizade', { p_request_id: id })
+    if (error) {
+      setErro(`Não foi possível responder à solicitação: ${error.message}`)
+      return
+    }
+    await carregarAmizades()
   }
 
   function abrirClima() {
@@ -285,7 +323,8 @@ function App() {
 
   if (verificandoSessao) return <main className="flex min-h-screen items-center justify-center bg-[#1d1d1b] text-[#c8bda9]">Verificando sessão...</main>
   if (!sessao) return <TelaAutenticacao />
-  if (paginaPerfil) return <TelaPerfil aoVoltar={voltarDoPerfil} aoSair={() => void sair()} convites={convites} carregandoConvites={carregandoConvites} aoResponderConvite={responderConvite} />
+  if (paginaPerfil && amigoSelecionado && sessao) return <TelaChat roomId={amigoSelecionado.room_id} usuarioId={sessao.user.id} amigoEmail={amigoSelecionado.email} aoVoltar={() => setAmigoSelecionado(null)} />
+  if (paginaPerfil) return <TelaPerfil aoVoltar={voltarDoPerfil} aoSair={() => void sair()} convites={convites} carregandoConvites={carregandoConvites} aoResponderConvite={responderConvite} solicitacoesAmizade={solicitacoesAmizade} amigos={amigos} aoEnviarSolicitacao={enviarSolicitacao} aoResponderSolicitacao={responderSolicitacao} aoAbrirChat={setAmigoSelecionado} />
   if (paginaEditor) return <><TelaEditor titulo={titulo} conteudo={conteudo} tipoConteudo={tipoConteudo} statusSalvamento={statusSalvamento} erro={erro} menuFerramentas={menuFerramentas} aoMudarTitulo={setTitulo} aoMudarConteudo={setConteudo} aoVoltar={voltarParaLista} aoAlternarFerramentas={() => setMenuFerramentas((aberto) => !aberto)} aoFecharFerramentas={() => setMenuFerramentas(false)} aoAbrirClima={abrirClima} />{(paginaClima || consultaClima) && <TelaClima key={`${notaSelecionada ?? 'rascunho'}-${paginaClima ? 'aberto' : 'fechado'}`} consultaInicial={consultaClima} formularioAberto={paginaClima} aoSalvarConsulta={(consulta) => { setConsultaClima(consulta); localStorage.setItem(notaSelecionada ? chaveClimaNota(notaSelecionada) : CHAVE_CLIMA_RASCUNHO, JSON.stringify(consulta)) }} aoRemoverConsulta={removerConsultaClima} aoVoltar={voltarDoClima} />}</>
   return <TelaNotas notas={notas} busca={busca} carregando={carregando} erro={erro} aoMudarBusca={setBusca} aoAbrirNota={abrirNota} aoAbrirEditor={abrirEditor} aoAbrirPerfil={abrirPerfil} aoExcluirNota={excluirNota} aoCompartilharNota={compartilharNota} />
 }
